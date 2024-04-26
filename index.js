@@ -88,6 +88,6 @@ app.delete('/deleterecord/:id', async (req, res) => {  //http://localhost:3000/d
     }
 });
 
-app.listen(3000, () => {
+app.listen(10000, () => {
     console.log('Server running on port 3000')
 });

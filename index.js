@@ -13,35 +13,19 @@ const express = require('express')
 const app = express()
 app.use(express.json())
 
-// app.get('/getrecord/:id', async(req, res) => {  //http://localhost:3000/getrecord/1
-//     try {
-//         const id = req.params.id
-//         const record = await contractInstance.getHealthRecord(id)
-//         let rec = []
-//         rec[0] = record[0]
-//         rec[1] = record[1]
-//         rec[2] = record[2]
-//         rec[3] = record[3]
-//         rec[4] = record[4]
-//         rec[5] = parseInt(record[5])
-//         res.send(rec)
-//     }
-//     catch (error) {
-//         res.status(500).send(error.message)
-//     }
-// });
-
 app.get('/getrecord/:id', async (req, res) => {
     try {
         const id = req.params.id;
         const record = await contractInstance.getHealthRecord(id);
         const rec = {
-            doctorID: record[0],
-            patientID: record[1],
-            patientID: record[2],
-            description: record[3],
-            evidence: record[4],
-            date: parseInt(record[5])
+            id: parseInt(record[0]),
+            initialExamination: record[1],
+            diagnosis: record[2],
+            evidence: record[3],
+            treatment: record[4],
+            medication: record[5],
+            comment: record[6],
+            date: parseInt(record[7])
         };
         res.send(rec);
     } catch (error) {
@@ -54,13 +38,14 @@ app.get('/getallrecords/', async(req, res) => {  //http://localhost:3000/getallr
     try {
         const allRecords = await contractInstance.getAllHealthRecords()
         const records = allRecords.map(record => ({
-            id : parseInt(record.id),
-            doctorID : record.doctorID,
-            patientID : record.patientID,
-            description : record.description,
-            prescription : record.prescription,
-            evidence : record.evidence,
-            date : parseInt(record.date)
+            id : parseInt(record[0]),
+            initialExamination : record[1],
+            diagnosis : record[2],
+            evidence : record[3],
+            treatment : record[4],
+            medication : record[5],
+            comment : record[6],
+            date : parseInt(record[7])
         }))
         console.log(records)
         res.send(records);
@@ -72,8 +57,8 @@ app.get('/getallrecords/', async(req, res) => {  //http://localhost:3000/getallr
 
 app.post('/createrecord', async(req, res) => { //http://localhost:3000/createrecord/
     try {
-        const {id, doctorID, patientID, description, prescription, evidence, date} = req.body
-        const tx = await contractInstance.setHealthRecord(id, doctorID, patientID, description, prescription, evidence, date)
+        const {id, initialExamination, diagnosis, evidence, treatment, medication, comment, date} = req.body
+        const tx = await contractInstance.setHealthRecord(id, initialExamination, diagnosis, evidence, treatment, medication, comment, date)
         await tx.wait()
         res.json({success: true})
     }
@@ -85,8 +70,8 @@ app.post('/createrecord', async(req, res) => { //http://localhost:3000/createrec
 app.put('/updaterecord/:id', async (req, res) => {  //http://localhost:3000/updaterecord/1
     try {
         const id = req.params.id
-        const {doctorID, patientID, description, prescription, evidence, date} = req.body
-        const tx = await contractInstance.updateHealthRecord(id, doctorID, patientID, description, prescription, evidence, date)
+        const {initialExamination, diagnosis, evidence, treatment, medication, comment, date} = req.body
+        const tx = await contractInstance.updateHealthRecord(id, initialExamination, diagnosis, evidence, treatment, medication, comment, date)
         await tx.wait()
         res.json({success: true})
     }
@@ -107,6 +92,6 @@ app.delete('/deleterecord/:id', async (req, res) => {  //http://localhost:3000/d
     }
 });
 
-app.listen(10000, () => {
+app.listen(3000, () => {
     console.log('Server running on port 3000')
 });

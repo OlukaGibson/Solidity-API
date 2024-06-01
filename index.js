@@ -21,11 +21,7 @@ app.get('/getrecord/:id', async (req, res) => {
             id: parseInt(record[0]),
             initialExamination: record[1],
             diagnosis: record[2],
-            evidence: record[3],
-            treatment: record[4],
-            medication: record[5],
-            comment: record[6],
-            date: parseInt(record[7])
+            date: parseInt(record[3])
         };
         res.send(rec);
     } catch (error) {
@@ -41,11 +37,7 @@ app.get('/getallrecords/', async(req, res) => {  //http://localhost:3000/getallr
             id : parseInt(record[0]),
             initialExamination : record[1],
             diagnosis : record[2],
-            evidence : record[3],
-            treatment : record[4],
-            medication : record[5],
-            comment : record[6],
-            date : parseInt(record[7])
+            date : parseInt(record[3])
         }))
         console.log(records)
         res.send(records);
@@ -57,8 +49,8 @@ app.get('/getallrecords/', async(req, res) => {  //http://localhost:3000/getallr
 
 app.post('/createrecord', async(req, res) => { //http://localhost:3000/createrecord/
     try {
-        const {id, initialExamination, diagnosis, evidence, treatment, medication, comment, date} = req.body
-        const tx = await contractInstance.setHealthRecord(id, initialExamination, diagnosis, evidence, treatment, medication, comment, date)
+        const {id, initialExamination, diagnosis, date} = req.body
+        const tx = await contractInstance.setHealthRecord(id, initialExamination, diagnosis, date)
         await tx.wait()
         res.json({success: true})
     }
@@ -70,8 +62,8 @@ app.post('/createrecord', async(req, res) => { //http://localhost:3000/createrec
 app.put('/updaterecord/:id', async (req, res) => {  //http://localhost:3000/updaterecord/1
     try {
         const id = req.params.id
-        const {initialExamination, diagnosis, evidence, treatment, medication, comment, date} = req.body
-        const tx = await contractInstance.updateHealthRecord(id, initialExamination, diagnosis, evidence, treatment, medication, comment, date)
+        const {initialExamination, diagnosis, date} = req.body
+        const tx = await contractInstance.updateHealthRecord(id, initialExamination, diagnosis, date)
         await tx.wait()
         res.json({success: true})
     }

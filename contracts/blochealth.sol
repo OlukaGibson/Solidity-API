@@ -7,10 +7,10 @@ contract blochealth {
         uint256 id;
         string initialExamination;
         string diagnosis;
-        string evidence;
-        string treatment;
-        string medication;
-        string comment;
+        // string evidence;
+        // string treatment;
+        // string medication;
+        // string comment;
         uint256 date ;
     }
 
@@ -30,27 +30,27 @@ contract blochealth {
         _;
     }
 
-    function setHealthRecord (uint256 _id, string memory _initialExamination, string memory _diagnosis, string memory _evidence, string memory _treatment, string memory _medication, string memory _comment, uint256 _date) public onlyOwner {
-        HealthRecord memory healthRecord = HealthRecord(_id, _initialExamination, _diagnosis, _evidence, _treatment, _medication, _comment, _date);
+    function setHealthRecord (uint256 _id, string memory _initialExamination, string memory _diagnosis, uint256 _date) public onlyOwner {
+        HealthRecord memory healthRecord = HealthRecord(_id, _initialExamination, _diagnosis, _date);
         healthRecords[_id] = healthRecord;
-        healthRecordArray.push(HealthRecord(_id, _initialExamination, _diagnosis, _evidence, _treatment, _medication, _comment, _date));
+        healthRecordArray.push(HealthRecord(_id, _initialExamination, _diagnosis, _date));
     }
 
-    function getHealthRecord (uint256 _id) public view returns (uint256, string memory, string memory, string memory, string memory, string memory, string memory, uint256) {
+    function getHealthRecord (uint256 _id) public view returns (uint256, string memory, string memory, uint256) {
         require(healthRecords[_id].id !=0 , "Health Record is not available");
         HealthRecord memory healthRecord = healthRecords[_id];
-        return (healthRecord.id, healthRecord.initialExamination, healthRecord.diagnosis, healthRecord.evidence, healthRecord.treatment, healthRecord.medication, healthRecord.comment, healthRecord.date);
+        return (healthRecord.id, healthRecord.initialExamination, healthRecord.diagnosis, healthRecord.date);
     }
 
     function getAllHealthRecords() public view returns (HealthRecord[] memory){
         return healthRecordArray;
     }
 
-    function updateHealthRecord(uint256 _id, string memory _initialExamination, string memory _diagnosis, string memory _evidence, string memory _treatment, string memory _medication, string memory _comment, uint256 _date) public onlyOwner {
+    function updateHealthRecord(uint256 _id, string memory _initialExamination, string memory _diagnosis, uint256 _date) public onlyOwner {
         require(healthRecords[_id].id !=0 , "Health Record is not available");
         deleteHealthRecord(_id);
-        healthRecords[_id] = HealthRecord(_id, _initialExamination, _diagnosis, _evidence, _treatment, _medication, _comment, _date);
-        healthRecordArray.push(HealthRecord(_id, _initialExamination, _diagnosis, _evidence, _treatment, _medication, _comment, _date));
+        healthRecords[_id] = HealthRecord(_id, _initialExamination, _diagnosis, _date);
+        healthRecordArray.push(HealthRecord(_id, _initialExamination, _diagnosis, _date));
     }
 
     function deleteHealthRecord(uint256 _id) public onlyOwner {

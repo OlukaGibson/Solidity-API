@@ -13,7 +13,30 @@ const express = require('express')
 const app = express()
 app.use(express.json())
 
-app.get('/getrecord/:id', async (req, res) => {
+
+// Function to get the last 2 blocks
+const getLast2Blocks = async () => {
+    const latestBlockNumber = await provider.getBlockNumber();
+    const blockPromises = [];
+
+    for (let i = 0; i < 2; i++) {
+        blockPromises.push(provider.getBlock(latestBlockNumber - i));
+    }
+
+    const blocks = await Promise.all(blockPromises);
+    return blocks;
+};
+
+app.get('/getlast2blocks', async (req, res) => {    //http://localhost:3000/getlast2blocks
+    try {
+        const last2Blocks = await getLast2Blocks();
+        res.send(last2Blocks);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/getrecord/:id', async (req, res) => {  //http://localhost:3000/getrecord/1
     try {
         const id = req.params.id;
         const record = await contractInstance.getHealthRecord(id);

@@ -15,7 +15,7 @@ app.use(express.json())
 
 
 // Function to get the last 2 blocks
-const getLast2Blocks = async () => {
+const auditdata = async () => {
     const latestBlockNumber = await provider.getBlockNumber();
     const blockPromises = [];
 
@@ -27,9 +27,9 @@ const getLast2Blocks = async () => {
     return blocks;
 };
 
-app.get('/getlast2blocks', async (req, res) => {    //http://localhost:3000/getlast2blocks
+app.get('/auditdata', async (req, res) => {    //http://localhost:3000/auditdata
     try {
-        const last2Blocks = await getLast2Blocks();
+        const last2Blocks = await auditdata();
         res.send(last2Blocks);
     } catch (error) {
         res.status(500).send(error.message);

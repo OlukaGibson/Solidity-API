@@ -1,18 +1,53 @@
 const ethers = require('ethers');
 require('dotenv').config();
-const API_URL = process.env.API_URL
-const PRIVATE_KEY = process.env.PRIVATE_KEY
-const contractAddress = process.env.CONTRACT_ADDRESS
+const API_URL = process.env.API_URL;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const contractAddress = process.env.CONTRACT_ADDRESS;
 
-const provider = new ethers.providers.JsonRpcProvider(API_URL)
-const signer = new ethers.Wallet(PRIVATE_KEY, provider)
-const {abi} = require("./artifacts/contracts/blochealth.sol/blochealth.json")
-const contractInstance = new ethers.Contract(contractAddress, abi, signer)
+const provider = new ethers.providers.JsonRpcProvider(API_URL);
+const signer = new ethers.Wallet(PRIVATE_KEY, provider);
+const { abi } = require("./artifacts/contracts/blochealth.sol/blochealth.json");
+const contractInstance = new ethers.Contract(contractAddress, abi, signer);
 
-const express = require('express')
-const app = express()
-app.use(express.json())
+const express = require('express');
+const app = express();
+app.use(express.json());
 
+// Function to convert input data to the expected format
+const convertInputRecord = (record) => {
+    const diagnosisStr = JSON.stringify(record.diagnosis);
+    const examinationStr = JSON.stringify(record.examination);
+
+    const convertedRecord = {
+        code: record.code,
+        diagnosis: diagnosisStr,
+        examination: examinationStr,
+        organizationId: record.organizationId,
+        patientId: record.patientId,
+        _creationTime: Math.round(record._creationTime),
+        _id: record._id
+    };
+
+    return convertedRecord;
+};
+
+// Function to convert output data back to the original format
+const revertRecord = (record) => {
+    const diagnosisObj = JSON.parse(record.diagnosis);
+    const examinationObj = JSON.parse(record.examination);
+
+    const revertedRecord = {
+        code: record.code,
+        diagnosis: diagnosisObj,
+        examination: examinationObj,
+        organizationId: record.organizationId,
+        patientId: record.patientId,
+        _creationTime: record._creationTime,
+        _id: record._id
+    };
+
+    return revertedRecord;
+};
 
 // Function to get the last 2 blocks
 const auditdata = async () => {
@@ -27,7 +62,7 @@ const auditdata = async () => {
     return blocks;
 };
 
-app.get('/auditdata', async (req, res) => {    //http://localhost:3000/auditdata
+app.get('/auditdata', async (req, res) => {
     try {
         const last2Blocks = await auditdata();
         res.send(last2Blocks);
@@ -36,77 +71,188 @@ app.get('/auditdata', async (req, res) => {    //http://localhost:3000/auditdata
     }
 });
 
-app.get('/getrecord/:id', async (req, res) => {  //http://localhost:3000/getrecord/1
-    try {
-        const id = req.params.id;
-        const record = await contractInstance.getHealthRecord(id);
+// app.get('/getrecord/:id', async (req, res) => {
+//     try {
+//         const id = req.params.id;
+//         const record = await contractInstance.getHealthRecord(id);
+//         const rec = {
+//             code: record[0],
+//             diagnosis: record[1],
+//             examination: record[2],
+//             organizationId: record[3],
+//             patientId: record[4],
+//             _creationTime: parseInt(record[5]),
+//             _id: record[6]
+//         };
+//         res.send(revertRecord(rec));
+//     } catch (error) {
+//         res.status(500).send(error.message);
+//     }
+// });
+app.get('/getrecord', async (req, res) => {
+    try{
+        const id = req.body;
+        const {_id} = id;
+        const record = await contractInstance.getHealthRecord(_id);
         const rec = {
-            id: parseInt(record[0]),
-            initialExamination: record[1],
-            diagnosis: record[2],
-            date: parseInt(record[3])
+            code: record[0],
+            diagnosis: record[1],
+            examination: record[2],
+            organizationId: record[3],
+            patientId: record[4],
+            _creationTime: parseInt(record[5]),
+            _id: record[6]
         };
-        res.send(rec);
+        res.send(revertRecord(rec));
+    }
+    catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/getpatientrecord', async (req, res) => {
+    try{
+        const allrecords = await contractInstance.getAllHealthRecords();
+        const records = allrecords.map(record => ({
+            code: record[0],
+            diagnosis: (record[1]),
+            examination: (record[2]),
+            organizationId: record[3],
+            patientId: record[4],
+            _creationTime: parseInt(record[5]),
+            _id: record[6]
+        }));
+        const revertedRecords = records.map(revertRecord);
+        let responseRecord = []
+        const _patientId = req.body;
+        const {patientId} = _patientId;
+        for (let i = 0; i < revertedRecords.length; i++){
+            if (revertedRecords[i].patientId === patientId){
+                responseRecord.push(revertedRecords[i]);
+            }
+        }
+        res.send(responseRecord);
+        
+    }
+    catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/getorganizationrecord', async (req, res) => {
+    try{
+        const allrecords = await contractInstance.getAllHealthRecords();
+        const records = allrecords.map(record => ({
+            code: record[0],
+            diagnosis: (record[1]),
+            examination: (record[2]),
+            organizationId: record[3],
+            patientId: record[4],
+            _creationTime: parseInt(record[5]),
+            _id: record[6]
+        }));
+        const revertedRecords = records.map(revertRecord);
+        let responseRecord = []
+        const _organizationId = req.body;
+        const {organizationId} = _organizationId;
+        for (let i = 0; i < revertedRecords.length; i++){
+            if (revertedRecords[i].organizationId === organizationId){
+                responseRecord.push(revertedRecords[i]);
+            }
+        }
+        res.send(responseRecord);
+        
+    }
+    catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/patientorganizationrecord', async (req, res) => {
+    try{
+        const allrecords = await contractInstance.getAllHealthRecords();
+        const records = allrecords.map(record => ({
+            code: record[0],
+            diagnosis: (record[1]),
+            examination: (record[2]),
+            organizationId: record[3],
+            patientId: record[4],
+            _creationTime: parseInt(record[5]),
+            _id: record[6]
+        }));
+        const revertedRecords = records.map(revertRecord);
+        let responseRecord = []
+        const patientorgrecord = req.body;
+        const {organizationId, patientId} = patientorgrecord;
+        for (let i = 0; i < revertedRecords.length; i++){
+            if (revertedRecords[i].organizationId === organizationId && revertedRecords[i].patientId === patientId){
+                responseRecord.push(revertedRecords[i]);
+            }
+        } 
+        res.send(responseRecord);
+
+    }
+    catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+app.get('/getallrecords/', async (req, res) => {
+    try {
+        const allRecords = await contractInstance.getAllHealthRecords();
+        const records = allRecords.map(record => ({
+            code: record[0],
+            diagnosis: (record[1]),
+            examination: (record[2]),
+            organizationId: record[3],
+            patientId: record[4],
+            _creationTime: parseInt(record[5]),
+            _id: record[6]
+        }));
+        console.log(records);
+        res.send(records.map(revertRecord));
     } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
+    
 
-app.get('/getallrecords/', async(req, res) => {  //http://localhost:3000/getallrecords/
+app.post('/createrecord', async (req, res) => {
     try {
-        const allRecords = await contractInstance.getAllHealthRecords()
-        const records = allRecords.map(record => ({
-            id : parseInt(record[0]),
-            initialExamination : record[1],
-            diagnosis : record[2],
-            date : parseInt(record[3])
-        }))
-        console.log(records)
-        res.send(records);
-    }
-    catch (error) {
+        const convertedRecord = convertInputRecord(req.body);
+        const { code, diagnosis, examination, organizationId, patientId, _creationTime, _id } = convertedRecord;
+        const tx = await contractInstance.setHealthRecord(code, diagnosis, examination, organizationId, patientId,_creationTime, _id);
+        await tx.wait();
+        res.json({ success: true });
+    } catch (error) {
         res.status(500).send(error.message);
     }
 });
 
-app.post('/createrecord', async(req, res) => { //http://localhost:3000/createrecord/
+app.put('/updaterecord/:id', async (req, res) => {
     try {
-        const {id, initialExamination, diagnosis, date} = req.body
-        const tx = await contractInstance.setHealthRecord(id, initialExamination, diagnosis, date)
-        await tx.wait()
-        res.json({success: true})
-    }
-    catch (error) {
-        res.status(500).send(error.message)
+        const convertedRecord = convertInputRecord(req.body);
+        const { code, diagnosis, examination, organizationId, patientId, _creationTime, _id } = convertedRecord;
+        const tx = await contractInstance.updateHealthRecord(code, diagnosis, examination, organizationId, patientId, _creationTime, _id);
+        await tx.wait();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 });
 
-app.put('/updaterecord/:id', async (req, res) => {  //http://localhost:3000/updaterecord/1
+app.delete('/deleterecord/:id', async (req, res) => {
     try {
-        const id = req.params.id
-        const {initialExamination, diagnosis, date} = req.body
-        const tx = await contractInstance.updateHealthRecord(id, initialExamination, diagnosis, date)
-        await tx.wait()
-        res.json({success: true})
-    }
-    catch (error) {
-        res.status(500).send(error.message)
-    }
-});
-
-app.delete('/deleterecord/:id', async (req, res) => {  //http://localhost:3000/deleterecord/1
-    try {
-        const id = req.params.id
-        const tx = await contractInstance.deleteHealthRecord(id)
-        await tx.wait()
-        res.json({success: true})
-    }
-    catch (error) {
-        res.status(500).send(error.message)
+        const id = req.params.id;
+        const tx = await contractInstance.deleteHealthRecord(id);
+        await tx.wait();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).send(error.message);
     }
 });
 
 app.listen(3000, () => {
-    console.log('Server running on port 3000')
+    console.log('Server running on port 3000');
 });

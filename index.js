@@ -71,24 +71,6 @@ app.get('/auditdata', async (req, res) => {
     }
 });
 
-// app.get('/getrecord/:id', async (req, res) => {
-//     try {
-//         const id = req.params.id;
-//         const record = await contractInstance.getHealthRecord(id);
-//         const rec = {
-//             code: record[0],
-//             diagnosis: record[1],
-//             examination: record[2],
-//             organizationId: record[3],
-//             patientId: record[4],
-//             _creationTime: parseInt(record[5]),
-//             _id: record[6]
-//         };
-//         res.send(revertRecord(rec));
-//     } catch (error) {
-//         res.status(500).send(error.message);
-//     }
-// });
 app.get('/getrecord', async (req, res) => {
     try{
         const id = req.body;
@@ -230,7 +212,7 @@ app.post('/createrecord', async (req, res) => {
     }
 });
 
-app.put('/updaterecord/:id', async (req, res) => {
+app.put('/updaterecord/', async (req, res) => {
     try {
         const convertedRecord = convertInputRecord(req.body);
         const { code, diagnosis, examination, organizationId, patientId, _creationTime, _id } = convertedRecord;

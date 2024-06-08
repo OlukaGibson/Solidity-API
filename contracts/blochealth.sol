@@ -58,6 +58,7 @@ contract blochealth {
                 healthRecordArray[i].patientId = _patientId;
                 healthRecordArray[i].creationTime = _creationTime;
                 healthRecordArray[i].id = _id;
+                return;
             }
         }
         revert("Health Record not found");
